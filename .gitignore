@@ -1,14 +1,12 @@
-# Загальні системні та конфігураційні файли
+# Тимчасові файли IDE та системи
 .DS_Store
 Thumbs.db
-
-# Папки та файли Node.js
-/node_modules
-package-lock.json
-
-# Середовища та секрети
-.env
-
-# Папки, які створюють IDE (Visual Studio / VS Code)
-/.vs/
 *.vscode
+
+# Папки, які спричиняли помилку "Permission denied"
+/.vs/ 
+
+# Залежності Node.js та секрети
+/node_modules
+.env
+package-lock.json
