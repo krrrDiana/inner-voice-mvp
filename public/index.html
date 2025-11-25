@@ -1,63 +1,260 @@
 ﻿<!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Inner Voice AI</title>
 
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            /* Змінні для анімованого фону */
+            --s: 25vmin;
+            --p: calc(var(--s) / 2);
+            --c1: pink;
+            --c2: dodgerblue;
+            --c3: white;
+            --bg: var(--c3);
+            --d: 4000ms;
+            --e: cubic-bezier(0.76, 0, 0.24, 1);
+            /* Анімований фон */
+            background-color: var(--bg);
+            background-image: linear-gradient(45deg, var(--c1) 25%, transparent 25%), linear-gradient(-45deg, var(--c1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--c2) 75%), linear-gradient(-45deg, transparent 75%, var(--c2) 75%);
+            background-size: var(--s) var(--s);
+            background-position: calc(var(--p) * 1) calc(var(--p) * 0), calc(var(--p) * -1) calc(var(--p) * 1), calc(var(--p) * 1) calc(var(--p) * -1), calc(var(--p) * -1) calc(var(--p) * 0);
+            animation: color var(--d) var(--e) infinite, position var(--d) var(--e) infinite;
+            /* Загальні стилі body */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #2c3e50;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
 
+        @keyframes color {
+            0%, 25% {
+                --bg: var(--c3);
+            }
+
+            26%, 50% {
+                --bg: var(--c1);
+            }
+
+            51%, 75% {
+                --bg: var(--c3);
+            }
+
+            76%, 100% {
+                --bg: var(--c2);
+            }
+        }
+
+        @keyframes position {
+            0% {
+                background-position: calc(var(--p) * 1) calc(var(--p) * 0), calc(var(--p) * -1) calc(var(--p) * 1), calc(var(--p) * 1) calc(var(--p) * -1), calc(var(--p) * -1) calc(var(--p) * 0);
+            }
+
+            25% {
+                background-position: calc(var(--p) * 1) calc(var(--p) * 4), calc(var(--p) * -1) calc(var(--p) * 5), calc(var(--p) * 1) calc(var(--p) * 3), calc(var(--p) * -1) calc(var(--p) * 4);
+            }
+
+            50% {
+                background-position: calc(var(--p) * 3) calc(var(--p) * 8), calc(var(--p) * -3) calc(var(--p) * 9), calc(var(--p) * 2) calc(var(--p) * 7), calc(var(--p) * -2) calc(var(--p) * 8);
+            }
+
+            75% {
+                background-position: calc(var(--p) * 3) calc(var(--p) * 12), calc(var(--p) * -3) calc(var(--p) * 13), calc(var(--p) * 2) calc(var(--p) * 11), calc(var(--p) * -2) calc(var(--p) * 12);
+            }
+
+            100% {
+                background-position: calc(var(--p) * 5) calc(var(--p) * 16), calc(var(--p) * -5) calc(var(--p) * 17), calc(var(--p) * 5) calc(var(--p) * 15), calc(var(--p) * -5) calc(var(--p) * 16);
+            }
+        }
+
+        @media (prefers-reduced-motion) {
+            body {
+                animation: none;
+            }
+        }
+
+        /* Стилі для контейнера та елементів */
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+            box-sizing: border-box;
+            transition: transform 0.3s ease-in-out;
+        }
+
+            .container:hover {
+                transform: translateY(-2px);
+            }
+
+        h1 {
+            color: #4b4b4b;
+            margin-bottom: 5px;
+            font-weight: 700;
+            font-size: 2.2em;
+        }
+
+        h2 {
+            color: #6a6a6a;
+            margin-top: 25px;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        p {
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+
+        #persona {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 1em;
+            appearance: none;
+            background-color: #ecf0f1;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+            #persona:focus {
+                /* [ЗМІНА] З темно-зеленого на пастельний фіолетовий */
+                border-color: #C5A8E6;
+                outline: none;
+            }
+
+        #recordButton {
+            /* [ЗМІНА] З темно-зеленого на пастельний фіолетовий */
+            background-color: #4347ff;
+            color: white;
+            padding: 15px 35px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+            /* [ЗМІНА] Тінь кнопки під новий колір */
+            box-shadow: 0 6px 15px rgba(197, 168, 230, 0.6);
+        }
+
+            #recordButton:hover {
+                /* [ЗМІНА] Колір при наведенні (трохи темніший фіолетовий) */
+                background-color: #0400d6;
+            }
+
+            #recordButton:active {
+                transform: scale(0.98);
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            }
+
+            #recordButton.recording {
+                background-color: #e74c3c;
+                box-shadow: 0 6px 15px rgba(231, 76, 60, 0.5);
+                animation: pulse 1.5s infinite;
+            }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+
+
+        #recordButton:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .result-box {
+            background-color: #f7f9f9;
+            padding: 18px;
+            border: 1px solid #e0e6e6;
+            /* [ЗМІНА] З темно-зеленого на пастельний фіолетовий */
+            border-left: 5px solid #3c65f0;
+            border-radius: 8px;
+            margin-top: 10px;
+            min-height: 50px;
+            text-align: left;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 1em;
+            line-height: 1.6;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            font-style: italic;
+            color: #2980b9;
+            min-height: 20px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                margin: 10px;
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
     <script defer src="script.js"></script>
-
 </head>
 
 <body>
-
     <div class="container">
-
         <h1>Inner Voice AI</h1>
-
         <p>Choose your inner persona:</p>
 
-
-
         <select id="persona">
-
             <option value="Motivator">Motivator</option>
-
             <option value="Philosopher">Philosopher</option>
-
             <option value="Sarcastic Self">Sarcastic Self</option>
-
         </select>
-
-
 
         <button id="recordButton">Start Recording</button>
 
-
-
         <div id="status">Press "Start Recording" and speak.</div>
 
-
-
         <h2>Your Thought:</h2>
-
         <div id="transcribedText" class="result-box"></div>
 
-
-
         <h2>Inner Voice Response:</h2>
-
         <div id="responseText" class="result-box"></div>
-
     </div>
-
 </body>
 
 </html>
