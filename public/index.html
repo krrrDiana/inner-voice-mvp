@@ -1,36 +1,39 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inner Voice AI</title>
+    <title>Внутрішній Голос AI</title>
 
     <style>
-        body {
-            /* Змінні для анімованого фону */
+        :root {
+            /* Variables for animated background (Pink/DodgerBlue/White) */
             --s: 25vmin;
             --p: calc(var(--s) / 2);
-            --c1: pink;
-            --c2: dodgerblue;
-            --c3: white;
+            --c1: #ff69b4; /* Pink */
+            --c2: #1e90ff; /* DodgerBlue */
+            --c3: #ffffff; /* White */
             --bg: var(--c3);
             --d: 4000ms;
             --e: cubic-bezier(0.76, 0, 0.24, 1);
-            /* Анімований фон */
+        }
+
+        body {
+            /* Animated Background */
             background-color: var(--bg);
             background-image: linear-gradient(45deg, var(--c1) 25%, transparent 25%), linear-gradient(-45deg, var(--c1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--c2) 75%), linear-gradient(-45deg, transparent 75%, var(--c2) 75%);
             background-size: var(--s) var(--s);
             background-position: calc(var(--p) * 1) calc(var(--p) * 0), calc(var(--p) * -1) calc(var(--p) * 1), calc(var(--p) * 1) calc(var(--p) * -1), calc(var(--p) * -1) calc(var(--p) * 0);
             animation: color var(--d) var(--e) infinite, position var(--d) var(--e) infinite;
-            /* Загальні стилі body */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* General body styles */
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #2c3e50;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Align content to the top */
             min-height: 100vh;
             box-sizing: border-box;
         }
@@ -81,14 +84,75 @@
             }
         }
 
-        /* Стилі для контейнера та елементів */
+        /* --- NEW LAYOUT FOR HISTORY SIDEBAR --- */
+        #app-wrapper {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px; /* Overall max width */
+            width: 100%;
+            align-items: flex-start;
+        }
+
+        #history-sidebar {
+            width: 300px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            min-height: 85vh; /* Minimum height for better appearance */
+            max-height: 85vh;
+            overflow-y: auto; /* Enable scrolling for history */
+            box-sizing: border-box;
+            /* Make it look distinct */
+            border: 1px solid #ddd;
+        }
+
+            #history-sidebar h2 {
+                margin-top: 0;
+                color: #4347ff;
+                border-bottom: 2px solid #e6e9f1;
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+                font-size: 1.3em;
+            }
+
+        .history-item {
+            cursor: pointer;
+            padding: 10px;
+            margin-bottom: 8px;
+            background-color: #f7f9f9;
+            border-left: 4px solid #3c65f0;
+            border-radius: 6px;
+            text-align: left;
+            font-size: 0.9em;
+            color: #4b4b4b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+            .history-item:hover {
+                background-color: #e6f0ff;
+                transform: translateX(2px);
+            }
+
+            .history-item.active {
+                background-color: #3c65f0;
+                color: white;
+                border-left: 4px solid #1e90ff;
+                font-weight: 600;
+            }
+
+        /* Main container and element styles */
         .container {
+            flex-grow: 1; /* Main app container takes remaining space */
             background-color: #ffffff;
             padding: 40px;
             border-radius: 16px;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
             width: 100%;
-            max-width: 550px;
+            max-width: 650px; /* Adjusted max-width for better fit */
             text-align: center;
             box-sizing: border-box;
             transition: transform 0.3s ease-in-out;
@@ -132,13 +196,58 @@
         }
 
             #persona:focus {
-                /* [ЗМІНА] З темно-зеленого на пастельний фіолетовий */
-                border-color: #C5A8E6;
+                border-color: #4347ff;
                 outline: none;
             }
 
+        /* TEMPLATE BUTTONS CONTAINER */
+        .template-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* TEMPLATE BUTTON */
+        .template-button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #3c65f0;
+            border-radius: 8px;
+            background-color: #e6f0ff;
+            color: #3c65f0;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            text-align: center;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+        }
+
+            .template-button:hover {
+                background-color: #3c65f0;
+                color: white;
+                box-shadow: 0 4px 8px rgba(60, 101, 240, 0.4);
+            }
+
+            .template-button:active {
+                transform: scale(0.98);
+            }
+
+            .template-button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+        /* RECORD BUTTON */
         #recordButton {
-            /* [ЗМІНА] З темно-зеленого на пастельний фіолетовий */
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
             background-color: #4347ff;
             color: white;
             padding: 15px 35px;
@@ -148,18 +257,12 @@
             font-size: 1.1em;
             font-weight: 600;
             transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
-            /* [ЗМІНА] Тінь кнопки під новий колір */
-            box-shadow: 0 6px 15px rgba(197, 168, 230, 0.6);
+            box-shadow: 0 6px 15px rgba(67, 71, 255, 0.4);
+            margin-bottom: 20px;
         }
 
             #recordButton:hover {
-                /* [ЗМІНА] Колір при наведенні (трохи темніший фіолетовий) */
                 background-color: #0400d6;
-            }
-
-            #recordButton:active {
-                transform: scale(0.98);
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             }
 
             #recordButton.recording {
@@ -189,11 +292,48 @@
             box-shadow: none;
         }
 
+        /* MANUAL INPUT TOGGLE BUTTON */
+        #manualToggleButton {
+            display: block;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            background-color: #f7f9f9;
+            color: #4347ff;
+            border: 1px solid #4347ff;
+            border-radius: 30px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+        }
+
+            #manualToggleButton:hover {
+                color: white;
+                background-color: #4347ff;
+                box-shadow: 0 4px 8px rgba(67, 71, 255, 0.3);
+            }
+
+            #manualToggleButton:active {
+                transform: scale(0.98);
+            }
+
+        /* MANUAL INPUT SECTION STYLES */
+        #manualInputSection {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
+        }
+
         .result-box {
             background-color: #f7f9f9;
             padding: 18px;
             border: 1px solid #e0e6e6;
-            /* [ЗМІНА] З темно-зеленого на пастельний фіолетовий */
             border-left: 5px solid #3c65f0;
             border-radius: 8px;
             margin-top: 10px;
@@ -214,16 +354,69 @@
             min-height: 20px;
             background-color: #ecf0f1;
             border-radius: 5px;
+            text-align: center;
         }
 
-        @media (max-width: 600px) {
+        /* TEXT INPUT STYLES */
+        .text-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #textInput {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        #sendTextButton {
+            background-color: #4347ff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+            #sendTextButton:hover {
+                background-color: #0400d6;
+            }
+
+            #sendTextButton:disabled {
+                background-color: #bdc3c7;
+                cursor: not-allowed;
+            }
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
             body {
                 padding: 10px;
+                align-items: flex-start;
+            }
+
+            #app-wrapper {
+                flex-direction: column; /* Stack vertically on small screens */
+                gap: 20px;
+            }
+
+            #history-sidebar {
+                width: 100%; /* Full width history on mobile */
+                height: auto;
+                max-height: 300px; /* Max height to allow scrolling */
+                position: relative;
+                margin-bottom: 10px;
             }
 
             .container {
-                margin: 10px;
+                width: 100%;
                 padding: 25px;
+                max-width: 100%;
             }
 
             h1 {
@@ -231,30 +424,279 @@
             }
         }
     </style>
-    <script defer src="script.js"></script>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Inner Voice AI</h1>
-        <p>Choose your inner persona:</p>
+    <!-- Main application wrapper to contain sidebar and main content -->
+    <div id="app-wrapper">
+        <!-- HISTORY SIDEBAR -->
+        <div id="history-sidebar">
+            <h2>Історія Запитів</h2>
+            <div id="historyList">
+                <p style="color: #7f8c8d; font-style: italic;">Тут будуть відображатися ваші попередні думки та відповіді.</p>
+            </div>
+        </div>
 
-        <select id="persona">
-            <option value="Motivator">Motivator</option>
-            <option value="Philosopher">Philosopher</option>
-            <option value="Sarcastic Self">Sarcastic Self</option>
-        </select>
+        <!-- MAIN APPLICATION CONTAINER -->
+        <div class="container">
+            <h1>Внутрішній Голос AI</h1>
+            <p>Оберіть свою внутрішню персону:</p>
 
-        <button id="recordButton">Start Recording</button>
+            <select id="persona">
+                <option value="Motivator">Мотиватор (Motivator)</option>
+                <option value="Philosopher">Філософ (Philosopher)</option>
+                <option value="Sarcastic Self">Саркастичне Я (Sarcastic Self)</option>
+            </select>
 
-        <div id="status">Press "Start Recording" and speak.</div>
+            <button id="recordButton">Розпочати Запис (Голос)</button>
 
-        <h2>Your Thought:</h2>
-        <div id="transcribedText" class="result-box"></div>
+            <!-- MANUAL INPUT TOGGLE BUTTON -->
+            <button id="manualToggleButton">Ввести Вручну (Текст)</button>
 
-        <h2>Inner Voice Response:</h2>
-        <div id="responseText" class="result-box"></div>
+            <!-- MANUAL INPUT SECTION (Hidden by default) -->
+            <div id="manualInputSection">
+
+                <!-- TEMPLATE BUTTONS BLOCK -->
+                <h2>Оберіть Початок Думки:</h2>
+                <div class="template-buttons" id="templateButtons">
+                    <button class="template-button" data-template="I am confused by ">Мене бентежить...</button>
+                    <button class="template-button" data-template="I feel like I should give up on ">Я відчуваю, що маю здатися...</button>
+                    <button class="template-button" data-template="I am not sure if it's right to ">Я не впевнений, чи правильно буде...</button>
+                </div>
+
+                <!-- TEXT INPUT BLOCK -->
+                <div class="text-input-container">
+                    <input type="text" id="textInput" placeholder="Або введіть свою думку тут..." title="Введіть свою думку тут">
+                    <button id="sendTextButton">Надіслати</button>
+                </div>
+            </div>
+
+            <div id="status">Натисніть "Розпочати Запис" або "Ввести Вручну", щоб почати.</div>
+
+            <h2>Ваша Думка:</h2>
+            <div id="transcribedText" class="result-box"></div>
+
+            <h2>Відповідь Внутрішнього Голосу:</h2>
+            <div id="responseText" class="result-box"></div>
+        </div>
     </div>
+
+    <script>
+        // Історія запитів зберігатиметься тут
+        let queryHistory = [];
+        let isRecording = false;
+        let isSending = false;
+        const defaultStatus = 'Натисніть "Розпочати Запис" або "Ввести Вручну", щоб почати.';
+
+        // Елементи DOM
+        const recordButton = document.getElementById('recordButton');
+        const manualToggleButton = document.getElementById('manualToggleButton');
+        const manualInputSection = document.getElementById('manualInputSection');
+        const textInput = document.getElementById('textInput');
+        const sendTextButton = document.getElementById('sendTextButton');
+        const personaSelect = document.getElementById('persona');
+        const transcribedTextDiv = document.getElementById('transcribedText');
+        const responseTextDiv = document.getElementById('responseText');
+        const statusDiv = document.getElementById('status');
+        const historyListDiv = document.getElementById('historyList');
+        const templateButtons = document.querySelectorAll('.template-button');
+
+        // Мок-функція для імітації виклику Gemini API
+        function mockGeminiCall(query, persona) {
+            statusDiv.textContent = `Генерую відповідь від ${persona}...`;
+
+            // Імітація затримки мережі
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    let mockResponse;
+                    if (persona === 'Motivator') {
+                        mockResponse = `Ось чому: ${query}. Ти здатний(а) на більше, ніж думаєш! Зроби крок вперед, і ти побачиш, що успіх чекає на тебе. Вір у себе!`;
+                    } else if (persona === 'Philosopher') {
+                        mockResponse = `Цікаво. Ми маємо розглянути це питання з точки зору екзистенціалізму, де вибір є тягарем. Якщо ${query}, то що це говорить про природу твого "Я" у світі?`;
+                    } else if (persona === 'Sarcastic Self') {
+                        mockResponse = `О, ${query}? Ти, мабуть, вперше в житті зіткнувся(лася) з чимось складним. Ну, звичайно, ти маєш здатися. Це ж так "логічно".`;
+                    } else {
+                        mockResponse = `Вибачте, я не знаю цієї персони. Але щодо ${query}, все буде добре.`;
+                    }
+                    resolve(mockResponse);
+                }, 1500); // 1.5 секунди затримки
+            });
+        }
+
+        // --- ФУНКЦІОНАЛ ІСТОРІЇ ---
+
+        function saveAndDisplayHistory(query, persona, response) {
+            const newItem = {
+                query: query,
+                persona: persona,
+                response: response,
+                timestamp: new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })
+            };
+            queryHistory.unshift(newItem); // Додаємо на початок
+
+            // Оновлюємо список історії
+            renderHistoryList();
+        }
+
+        function renderHistoryList() {
+            historyListDiv.innerHTML = ''; // Очищаємо список
+
+            if (queryHistory.length === 0) {
+                historyListDiv.innerHTML = '<p style="color: #7f8c8d; font-style: italic;">Тут будуть відображатися ваші попередні думки та відповіді.</p>';
+                return;
+            }
+
+            queryHistory.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.title = `${item.query}`;
+                historyItem.innerHTML = `<strong>[${item.timestamp}]</strong> (${item.persona}): ${item.query}`;
+                historyItem.dataset.index = index;
+
+                // Додаємо обробник кліку для відновлення запиту
+                historyItem.addEventListener('click', () => loadHistoryItem(index));
+
+                historyListDiv.appendChild(historyItem);
+            });
+            // Встановлюємо перший елемент як активний, якщо він є
+            if (queryHistory.length > 0) {
+                document.querySelector('.history-item').classList.add('active');
+            }
+        }
+
+        function loadHistoryItem(index) {
+            const item = queryHistory[index];
+            if (!item) return;
+
+            // Оновлюємо головні поля
+            personaSelect.value = item.persona;
+            transcribedTextDiv.textContent = item.query;
+            responseTextDiv.textContent = item.response;
+            statusDiv.textContent = `Завантажено з історії. Персона: ${item.persona}.`;
+
+            // Оновлюємо активний стан у списку
+            document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.history-item[data-index="${index}"]`).classList.add('active');
+        }
+
+
+        // --- ОСНОВНИЙ ФУНКЦІОНАЛ ---
+
+        function setSendingState(sending) {
+            isSending = sending;
+            recordButton.disabled = sending;
+            sendTextButton.disabled = sending;
+            textInput.disabled = sending;
+            manualToggleButton.disabled = sending;
+            templateButtons.forEach(btn => btn.disabled = sending);
+
+            if (sending) {
+                statusDiv.textContent = "Генерую відповідь...";
+            } else if (!isRecording) {
+                statusDiv.textContent = defaultStatus;
+            }
+        }
+
+
+        // Імітація Voice-to-Text (для демонстрації)
+        function startVoiceRecording() {
+            if (isRecording) {
+                // Stop Recording
+                isRecording = false;
+                recordButton.textContent = 'Розпочати Запис (Голос)';
+                recordButton.classList.remove('recording');
+
+                const mockQuery = "Я не знаю, як почати цей новий проєкт, і відчуваю себе пригніченим."; // Імітація розпізнаної думки
+                transcribedTextDiv.textContent = mockQuery;
+
+                // Продовжуємо як із текстовим запитом
+                handleSendText(mockQuery);
+
+            } else {
+                // Start Recording
+                isRecording = true;
+                transcribedTextDiv.textContent = '...Слухаю вашу внутрішню думку...';
+                responseTextDiv.textContent = '';
+                statusDiv.textContent = 'Запис активний. Натисніть знову, щоб зупинити.';
+                recordButton.textContent = 'Зупинити Запис...';
+                recordButton.classList.add('recording');
+
+                // Імітація автоматичної зупинки через 3 секунди
+                setTimeout(() => {
+                    if (isRecording) {
+                        startVoiceRecording(); // Автоматична зупинка
+                    }
+                }, 3000);
+            }
+        }
+
+        async function handleSendText(queryToSend = null) {
+            let query;
+            if (queryToSend) {
+                query = queryToSend;
+            } else {
+                query = textInput.value.trim();
+                transcribedTextDiv.textContent = query; // Відображаємо введений текст
+            }
+
+            if (!query) {
+                statusDiv.textContent = "Будь ласка, введіть або скажіть свою думку.";
+                return;
+            }
+
+            setSendingState(true);
+            const persona = personaSelect.value;
+            responseTextDiv.textContent = '...'; // Скидаємо попередню відповідь
+
+            try {
+                // Імітуємо виклик API
+                const response = await mockGeminiCall(query, persona);
+                responseTextDiv.textContent = response;
+
+                // Зберігаємо запит та відповідь в історію
+                saveAndDisplayHistory(query, persona, response);
+
+            } catch (error) {
+                console.error("Помилка API:", error);
+                responseTextDiv.textContent = 'Помилка генерації відповіді. Перевірте консоль.';
+                statusDiv.textContent = 'Помилка!';
+            } finally {
+                setSendingState(false);
+                if (!queryToSend) {
+                    textInput.value = ''; // Очищаємо поле вводу, якщо це був ручний ввід
+                }
+            }
+        }
+
+        // --- ОБРОБНИКИ ПОДІЙ ---
+
+        recordButton.addEventListener('click', startVoiceRecording);
+        sendTextButton.addEventListener('click', () => handleSendText());
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSendText();
+            }
+        });
+
+        manualToggleButton.addEventListener('click', () => {
+            const isVisible = manualInputSection.style.display === 'block';
+            manualInputSection.style.display = isVisible ? 'none' : 'block';
+            manualToggleButton.textContent = isVisible ? 'Ввести Вручну (Текст)' : 'Сховати Ручний Ввід';
+        });
+
+        templateButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const template = button.getAttribute('data-template');
+                textInput.value = template;
+                manualInputSection.style.display = 'block'; // Відкриваємо секцію вводу
+                manualToggleButton.textContent = 'Сховати Ручний Ввід';
+                textInput.focus();
+            });
+        });
+
+        // Ініціалізація історії при завантаженні (спочатку вона порожня)
+        window.onload = renderHistoryList;
+    </script>
 </body>
 
 </html>
