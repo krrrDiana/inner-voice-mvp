@@ -1,64 +1,186 @@
-// Отримання елементів DOM
+п»ї// =========================================================================
+//                  GLOBAL VARIABLES & DOM ELEMENTS
+// =========================================================================
+
 const recordButton = document.getElementById('recordButton');
 const personaSelect = document.getElementById('persona');
 const statusDiv = document.getElementById('status');
 const transcribedText = document.getElementById('transcribedText');
 const responseText = document.getElementById('responseText');
-const historyList = document.getElementById('historyContainer'); // <--- ПЕРЕВІРКА: Правильно отримує контейнер історії
 
-// Елементи для ручного введення
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 const manualToggleButton = document.getElementById('manualToggleButton');
 const manualInputSection = document.getElementById('manualInputSection');
 const textInput = document.getElementById('textInput');
 const sendTextButton = document.getElementById('sendTextButton');
 const templateButtonsContainer = document.getElementById('templateButtons');
 
-let recognition; // Для Speech-to-Text (STT)
-let chatHistory = []; // МАСИВ ДЛЯ ЗБЕРІГАННЯ КОНТЕКСТУ ДІАЛОГУ
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅРІпїЅ
+const historyList = document.getElementById('historyList'); // DOM-пїЅпїЅпїЅпїЅпїЅпїЅпїЅ <ul>
+let queryHistory = []; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
-// Перевірка підтримки Web Speech API
+let recognition; // For Speech-to-Text (STT)
+
+// Check for Web Speech API support
 if (!('webkitSpeechRecognition' in window)) {
     statusDiv.textContent = "Error: Your browser does not support Web Speech Recognition. Try Chrome or Edge.";
     recordButton.disabled = true;
 } else {
-    // Ініціалізація STT
+    // Initialize STT
     recognition = new webkitSpeechRecognition();
     recognition.continuous = false;
-    recognition.lang = 'en-US'; // *** Встановлення мови розпізнавання на англійську ***
+    recognition.lang = 'en-US'; // *** SETTING RECOGNITION LANGUAGE TO ENGLISH ***
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 }
 
 // =========================================================================
-// TTS FUNCTION (Використовує АНГЛІЙСЬКИЙ голос)
+//                  HISTORY LOGIC (пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅЦІпїЅпїЅпїЅпїЅ)
+// =========================================================================
+
+/**
+ * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ Local Storage пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+ */
+function loadHistory() {
+    const storedHistory = localStorage.getItem('innerVoiceHistory');
+    if (storedHistory) {
+        try {
+            queryHistory = JSON.parse(storedHistory);
+            renderHistory();
+        } catch (e) {
+            console.error("Error parsing history from Local Storage:", e);
+            queryHistory = [];
+        }
+    }
+}
+
+/**
+ * пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ Local Storage.
+ */
+function saveHistory() {
+    localStorage.setItem('innerVoiceHistory', JSON.stringify(queryHistory));
+}
+
+/**
+ * пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ HTML.
+ */
+function renderHistory() {
+    historyList.innerHTML = ''; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+    queryHistory.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = 'history-item';
+
+        // ВіпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 40 пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        const displayQuery = item.query.substring(0, 40) + (item.query.length > 40 ? '...' : '');
+        li.innerHTML = `<strong>${item.persona}</strong>: ${displayQuery}`;
+
+        li.dataset.index = index; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅдії пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+        li.addEventListener('click', () => loadHistoricalQuery(index));
+
+        historyList.appendChild(li); // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    });
+}
+
+/**
+ * пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+ * @param {string} queryText - пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+ * @param {string} responseText - ВіпїЅпїЅпїЅпїЅпїЅпїЅ AI.
+ * @param {string} persona - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+ * @param {string} source - 'voice' пїЅпїЅпїЅ 'manual'.
+ */
+function addQueryToHistory(queryText, responseText, persona, source) {
+    if (!queryText) return;
+
+    const newEntry = {
+        query: queryText,
+        response: responseText,
+        persona: persona,
+        source: source,
+        timestamp: new Date().toLocaleString()
+    };
+
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
+    queryHistory.unshift(newEntry);
+
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, 20 пїЅпїЅпїЅпїЅпїЅпїЅ)
+    if (queryHistory.length > 20) {
+        queryHistory.pop();
+    }
+
+    saveHistory(); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ Local Storage
+    renderHistory(); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+}
+
+/**
+ * пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ.
+ * @param {number} index - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ queryHistory (0 - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ).
+ */
+function loadHistoricalQuery(index) {
+    const entry = queryHistory[index];
+    if (!entry) return;
+
+    // 1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    transcribedText.textContent = entry.query;
+    responseText.textContent = entry.response || 'No saved response for this query.';
+    statusDiv.textContent = `Loaded history from ${entry.timestamp} (Persona: ${entry.persona}).`;
+
+    // 2. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    personaSelect.value = entry.persona;
+
+    // 3. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    if (entry.source === 'manual' || manualInputSection.style.display === 'block') {
+        manualInputSection.style.display = 'block';
+        recordButton.style.display = 'none';
+        manualToggleButton.textContent = 'Hide Manual Input';
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+        textInput.value = '';
+    } else {
+        manualInputSection.style.display = 'none';
+        recordButton.style.display = 'inline-block';
+        manualToggleButton.textContent = 'Type Manually (Text)';
+    }
+
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ TTS, пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+    speechSynthesis.cancel();
+
+    // 4. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    if (entry.response) {
+        speakResponse(entry.response);
+    }
+}
+
+// =========================================================================
+// TTS FUNCTION (Using ENGLISH voice)
 // =========================================================================
 function speakResponse(text) {
-    // Скасувати будь-яке попереднє мовлення
+    // Cancel any previous speech
     speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 1.0;
 
     const setAndSpeak = () => {
-        // Пошук АНГЛІЙСЬКОГО голосу ('en') для гарантованої роботи TTS
+        // Search for an ENGLISH voice ('en') for guaranteed TTS function
         const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
 
         if (voices.length > 0) {
-            // Знайдено англійський голос
+            // Found an English voice
             utterance.voice = voices[0];
             utterance.lang = voices[0].lang;
             console.warn("Using English voice.");
         } else {
-            // Резервний варіант: голос за замовчуванням
+            // Fallback to default English voice
             utterance.lang = 'en-US';
             console.warn("English voice not found. Using default voice.");
         }
 
-        // Відтворення тексту
+        // Speak the text
         speechSynthesis.speak(utterance);
     };
 
-    // Чекати, поки голоси завантажаться
+    // Wait for voices to load
     if (speechSynthesis.getVoices().length === 0) {
         speechSynthesis.onvoiceschanged = setAndSpeak;
     } else {
@@ -67,60 +189,19 @@ function speakResponse(text) {
 }
 // =========================================================================
 
-/**
- * Очищає результати та історію чату.
- */
+
+// Clear results
 function clearResults() {
     speechSynthesis.cancel();
     transcribedText.textContent = '';
     responseText.textContent = '';
-
-    // Очищення історії
-    chatHistory = [];
-    if (historyList) {
-        // Залишаємо лише заголовок
-        historyList.innerHTML = '<h3>Conversation History</h3>';
-    }
 }
-
-/**
- * Додає елемент діалогу до контейнера історії.
- * ВИКОРИСТОВУЄТЬСЯ ДЛЯ ВІДОБРАЖЕННЯ
- * @param {string} role - "user" або "model".
- * @param {string} text - Текст діалогу.
- */
-function displayHistoryItem(role, text) {
-    if (!historyList) {
-        console.error("History container not found! Check index.html ID.");
-        return;
-    }
-
-    // Встановлення класів для стилізації (використовуючи класи з index.html)
-    const roleClass = role === 'user' ? 'bg-blue-100 text-blue-800 self-end' : 'bg-green-100 text-green-800 self-start';
-    const alignClass = role === 'user' ? 'text-right' : 'text-left';
-
-    const itemDiv = document.createElement('div');
-    itemDiv.className = `p-2 rounded-xl max-w-[90%] break-words ${roleClass} ${alignClass}`;
-
-    // Додаємо мітку ролі та сам текст
-    itemDiv.innerHTML = `<span class="font-bold text-xs capitalize">${role}:</span> ${text}`;
-
-    const wrapper = document.createElement('div');
-    // Використовуємо flex та justify-end/start для вирівнювання бульбашок
-    wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
-    wrapper.appendChild(itemDiv);
-
-    historyList.appendChild(wrapper);
-    // Прокручуємо до кінця
-    historyList.scrollTop = historyList.scrollHeight;
-}
-
 
 // -------------------------------------------------------------------------
 // STT / Voice Logic
 // -------------------------------------------------------------------------
 
-// Обробники подій STT
+// STT event handlers
 recognition.onresult = event => {
     const transcript = event.results[0][0].transcript;
     transcribedText.textContent = transcript;
@@ -148,20 +229,17 @@ recognition.onend = () => {
 };
 
 
-// Перемикання стану запису
+// Toggle recording state
 recordButton.addEventListener('click', () => {
-    // Припиняємо розмову лише якщо ми не в процесі обробки
-    if (!recordButton.disabled) {
-        clearResults();
-    }
+    clearResults();
 
     if (recordButton.classList.contains('recording')) {
-        // Припинити запис
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         recognition.stop();
         recordButton.disabled = true;
 
     } else {
-        // Запустити запис
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         try {
             recognition.start();
             recordButton.textContent = 'Stop Listening';
@@ -181,29 +259,29 @@ recordButton.addEventListener('click', () => {
 // Manual Text Input Logic
 // -------------------------------------------------------------------------
 
-// 1. Обробник перемикання ручного введення
+// 1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 manualToggleButton.addEventListener('click', () => {
-    clearResults(); // Очищаємо результати та історію при перемиканні
+    clearResults(); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
     const isHidden = manualInputSection.style.display === 'none' || manualInputSection.style.display === '';
 
     if (isHidden) {
-        // Показати секцію
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         manualInputSection.style.display = 'block';
         manualToggleButton.textContent = 'Hide Manual Input';
-        recordButton.style.display = 'none'; // Приховати кнопку запису
+        recordButton.style.display = 'none'; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         statusDiv.textContent = 'Type your thought or select a template.';
     } else {
-        // Приховати секцію
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         manualInputSection.style.display = 'none';
         manualToggleButton.textContent = 'Type Manually (Text)';
-        recordButton.style.display = 'inline-block'; // Показати кнопку запису
+        recordButton.style.display = 'inline-block'; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         statusDiv.textContent = 'Press "Start Recording" or "Type Manually" to begin.';
     }
 });
 
 
-// 2. Обробник кнопок-шаблонів
+// 2. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 templateButtonsContainer.addEventListener('click', (event) => {
     const target = event.target;
     if (target.classList.contains('template-button')) {
@@ -211,19 +289,18 @@ templateButtonsContainer.addEventListener('click', (event) => {
         textInput.value = templateText;
         textInput.focus();
         statusDiv.textContent = `Template selected. Finish your thought and click Send.`;
-        // Автоматично відправляти не будемо
     }
 });
 
 
-// 3. Обробник кнопки відправки тексту
+// 3. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 sendTextButton.addEventListener('click', () => {
     const text = textInput.value.trim();
     if (text) {
-        transcribedText.textContent = text;
+        transcribedText.textContent = text; // ВіпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ "Your Thought"
         sendTextToServer(text, personaSelect.value, 'manual');
         statusDiv.textContent = 'Text sent. Generating AI response...';
-        sendTextButton.disabled = true;
+        sendTextButton.disabled = true; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         textInput.disabled = true;
     } else {
         statusDiv.textContent = 'Please enter text or select a template.';
@@ -231,10 +308,10 @@ sendTextButton.addEventListener('click', () => {
 });
 
 // -------------------------------------------------------------------------
-// Server Communication Logic
+// Server Communication Logic (пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅЦІпїЅпїЅ пїЅпїЅпїЅпїЅРІпїЅ)
 // -------------------------------------------------------------------------
 
-// Надсилання ТЕКСТУ до бекенду (Gemini)
+// Send TEXT to the backend (Gemini)
 async function sendTextToServer(text, persona, source) {
     if (text.length === 0) {
         statusDiv.textContent = 'Nothing was entered. Try again.';
@@ -245,57 +322,70 @@ async function sendTextToServer(text, persona, source) {
         return;
     }
 
-    // 1. Надсилаємо запит
+    let aiResponse = ''; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
+
     try {
         const response = await fetch('/api/process-text', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            // Надсилаємо userText, persona та поточну chatHistory
-            body: JSON.stringify({
-                userText: text,
-                persona: persona,
-                chatHistory: chatHistory
-            })
+            body: JSON.stringify({ userText: text, persona: persona })
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            responseText.textContent = `Error: ${data.error || 'Unknown server error.'}`;
+            aiResponse = `Error: ${data.error || 'Unknown server error.'}`;
+            responseText.textContent = aiResponse;
             statusDiv.textContent = 'Error. Check the console and your Gemini API key.';
             throw new Error(`Server returned an error: ${data.details || data.error}`);
         }
 
-        // 2. ОНОВЛЕННЯ ІСТОРІЇ ТА ВІДОБРАЖЕННЯ
-
-        // Додаємо запит користувача до історії (для API) та відображаємо у UI
-        chatHistory.push({ role: "user", parts: [{ text: text }] });
-        displayHistoryItem("user", text); // <--- ВИКЛИК ФУНКЦІЇ ДЛЯ UI
-
-        // Додаємо відповідь моделі до історії (для API) та відображаємо у UI
-        chatHistory.push({ role: "model", parts: [{ text: data.responseText }] });
-        displayHistoryItem("model", data.responseText); // <--- ВИКЛИК ФУНКЦІЇ ДЛЯ UI
-
-
-        // Відображаємо та відтворюємо результат у основних блоках
-        responseText.textContent = data.responseText;
-        speakResponse(data.responseText);
+        // Display and speak the results
+        aiResponse = data.responseText;
+        responseText.textContent = aiResponse;
+        speakResponse(aiResponse); // Call the TTS function
         statusDiv.textContent = 'Processing complete. Inner Voice Response:';
 
     } catch (error) {
         console.error('Error sending/receiving data:', error);
         statusDiv.textContent = 'An error occurred. Details in console.';
+        aiResponse = aiResponse || 'Failed to get a response.'; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     } finally {
-        // Відновлюємо стан елементів
+        // *** пїЅпїЅпїЅРІпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅРІпїЅ ***
+        addQueryToHistory(text, aiResponse, persona, source);
+
+        // ВіпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         if (source === 'voice') {
             recordButton.textContent = 'Start Recording (Voice)';
             recordButton.disabled = false;
         } else if (source === 'manual') {
             sendTextButton.disabled = false;
             textInput.disabled = false;
-            textInput.value = ''; // Очищаємо поле введення після відправки
+            textInput.value = ''; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         }
     }
 }
+
+
+// -------------------------------------------------------------------------
+// INITIALIZATION
+// -------------------------------------------------------------------------
+
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+document.addEventListener('DOMContentLoaded', () => {
+    loadHistory();
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    if (manualInputSection.style.display !== 'block') {
+        manualInputSection.style.display = 'none'; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        recordButton.style.display = 'inline-block';
+    } else {
+        manualToggleButton.textContent = 'Hide Manual Input';
+        recordButton.style.display = 'none';
+    }
+
+    if (!recordButton.disabled) {
+        statusDiv.textContent = 'Press "Start Recording" or "Type Manually" to begin.';
+    }
+});
